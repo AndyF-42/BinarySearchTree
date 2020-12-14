@@ -15,7 +15,7 @@ struct Node {
 Node* addNode(Node*, int);
 void getInput(Node*&);
 bool searchTree(Node*, int, bool);
-void deleteNode(Node*);
+Node* deleteNode(Node*, int target);
 void printTree(Node*, int depth);
 
 
@@ -33,7 +33,7 @@ int main() {
       getInput(tree);
     } else if (strcmp(input, "SEARCH") == 0) {
       int target;
-      bool answer;
+      bool answer = false;
       cout << "Searching for: ";
       cin >> target;
       answer = searchTree(tree, target, answer);
@@ -43,7 +43,10 @@ int main() {
 	cout << target << " is NOT in the tree." << endl;
       }
     } else if (strcmp(input, "DELETE") == 0) {
-      deleteNode(tree);
+      int target;
+      cout << "Deleting: ";
+      cin >> target;
+      tree = deleteNode(tree, target);
     } else if (strcmp(input, "PRINT") == 0) {
       printTree(tree, 0);
     } else if (strcmp(input, "QUIT") != 0) { //anything else besides QUIT is invalid
@@ -120,7 +123,7 @@ void getInput(Node* &tree) {
 
 //recursively searches tree for whether or not a number is in it
 bool searchTree(Node* root, int target, bool answer) {
-  if (!root) {return answer;} //root is complete
+  if (!root) {return answer;} //dead end
   if (root->value == target) {
     return true;
   } else {
@@ -130,24 +133,55 @@ bool searchTree(Node* root, int target, bool answer) {
   return answer;
 }
 
-//deletes given node from the tree
-void deleteNode(Node* tree) {
-
+//deletes given node from the tree using recursion
+Node* deleteNode(Node* root, int target) {
+  if (!root) {return root;} //dead end
+  if (root->value == target) {
+    //if no or one child, return the other child   NOT WORKING FOR 
+    if (!root->right) {
+      Node* temp = root->left;
+      delete(root);
+      return temp;
+    } else if (!root->left) {
+      Node* temp = root->right;
+      delete(root);
+      return temp;
+    } else {
+      //if two children, pick one side (right)
+      //then, go all the way to the other side from there (left) - TEMP
+      //now, replace that one with it's only child (if it has one)
+      //finally, swap the head and TEMP
+      Node* temp = root->right;
+      if (!temp->left) {
+	root->value = temp->value;
+	root->right = temp->right;
+      } else {
+	while (temp->left->left) {
+	  temp = temp->left;
+	}
+	//temp's parent's child need to be temp's child
+	root->value = temp->left->value;
+	temp->left = temp->left->right;
+	return root;
+      }
+    }
+  } else {
+    root->right = deleteNode(root->right, target);
+    root->left = deleteNode(root->left, target);
+  }
+  return root;
 }
 
 //visually prints out tree horizontally using recursion
 void printTree(Node* root, int depth) {
   if (!root) {return;} //root is complete
+  
+  printTree(root->right, depth+1); //print top (right) root
 
-  //print top (right) root
-  printTree(root->right, depth+1);
-
-  //print data with spacing
-  for (int i = 0; i < depth; i++) {
+  for (int i = 0; i < depth; i++) { //spacing
     cout << "   ";
   }
-  cout << root->value << endl;
+  cout << root->value << endl; //print data
 
-  //print bottom (left) root
-  printTree(root->left, depth+1);
+  printTree(root->left, depth+1); //print bottom (left) root
 }
