@@ -61,19 +61,20 @@ int main() {
 
 //adds a node to tree via console or file input
 Node* addNode(Node* tree, int newValue) {
-  if (!tree) {
+  if (!tree) { //if null, this is where to add
     tree = new Node;
     tree->value = newValue;
     return tree;
   }
-  if (tree->value < newValue) {
+  if (tree->value < newValue) { //recursively go left or right until you are where you need to add 
     tree->right = addNode(tree->right, newValue);
-  } else {
+  } else if (tree->value > newValue) {
     tree->left = addNode(tree->left, newValue);
   }
   return tree;
 }
 
+//get input through console or through a file
 void getInput(Node* &tree) {
   char method[10];
   cout << "Add by FILE or by CONSOLE? ";
@@ -95,7 +96,7 @@ void getInput(Node* &tree) {
         cout << "Could not find/open " << fileName;
         exit(1);
       }
-      while (numbers >> data) { //copy all the numbers into the heap
+      while (numbers >> data) { //copy all the numbers into the tree
         tree = addNode(tree, atoi(data));
       }
       break;
@@ -105,7 +106,7 @@ void getInput(Node* &tree) {
       cin.get(data, 300);
       cin.get();
 
-      //use string tokenizer to split on spaces and copy into the heap
+      //use string tokenizer to split on spaces and copy into the tree
       char *ptr;
       ptr = strtok(data, " ");
 
@@ -124,9 +125,9 @@ void getInput(Node* &tree) {
 //recursively searches tree for whether or not a number is in it
 bool searchTree(Node* root, int target, bool answer) {
   if (!root) {return answer;} //dead end
-  if (root->value == target) {
+  if (root->value == target) { //found it
     return true;
-  } else {
+  } else { //recursively search the whole tree (slightly inefficient)
     answer = searchTree(root->right, target, answer);
     answer = searchTree(root->left, target, answer);
   }
@@ -137,7 +138,7 @@ bool searchTree(Node* root, int target, bool answer) {
 Node* deleteNode(Node* root, int target) {
   if (!root) {return root;} //dead end
   if (root->value == target) {
-    //if no or one child, return the other child   NOT WORKING FOR 
+    //if no or one child, return the other child 
     if (!root->right) {
       Node* temp = root->left;
       delete(root);
@@ -147,25 +148,20 @@ Node* deleteNode(Node* root, int target) {
       delete(root);
       return temp;
     } else {
-      //if two children, pick one side (right)
-      //then, go all the way to the other side from there (left) - TEMP
-      //now, replace that one with it's only child (if it has one)
-      //finally, swap the head and TEMP
-      Node* temp = root->right;
-      if (!temp->left) {
+      Node* temp = root->right; //go right
+      if (!temp->left) { //if nothing to the left, replace the value properly
 	root->value = temp->value;
 	root->right = temp->right;
       } else {
-	while (temp->left->left) {
+	while (temp->left->left) { //otherwise, go to one before the end of the left side
 	  temp = temp->left;
 	}
-	//temp's parent's child need to be temp's child
-	root->value = temp->left->value;
-	temp->left = temp->left->right;
+	root->value = temp->left->value; //swap the replacement value with the target
+	temp->left = temp->left->right; //replace the temp with it's child
 	return root;
       }
     }
-  } else {
+  } else { //recursively search the whole tree (slightly inefficient)
     root->right = deleteNode(root->right, target);
     root->left = deleteNode(root->left, target);
   }
